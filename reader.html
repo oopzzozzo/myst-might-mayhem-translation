@@ -43,6 +43,7 @@
             overflow-y: hidden;
             display: flex;
             cursor: grab;
+            scroll-behavior: smooth;
         }
         #reader-container:active { cursor: grabbing; }
         
@@ -192,6 +193,7 @@
             
             updateNavUI();
             
+            // Scroll to the "beginning" (the far right in vertical-rl)
             container.scrollLeft = container.scrollWidth;
         }
 
@@ -217,8 +219,20 @@
         nextBtn.addEventListener('click', () => loadChapter(currentIndex + 1));
 
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft') loadChapter(currentIndex + 1); 
-            if (e.key === 'ArrowRight') loadChapter(currentIndex - 1);
+            const pageWidth = container.clientWidth;
+            const scrollAmount = pageWidth * 0.75;
+
+            if (e.key === 'ArrowLeft') {
+                // In vertical-rl, left moves further into the content
+                container.scrollLeft -= scrollAmount;
+            } else if (e.key === 'ArrowRight') {
+                // In vertical-rl, right moves back towards the beginning
+                container.scrollLeft += scrollAmount;
+            } else if (e.key === 'ArrowUp') {
+                loadChapter(currentIndex - 1);
+            } else if (e.key === 'ArrowDown') {
+                loadChapter(currentIndex + 1);
+            }
         });
 
         // Drag to scroll
