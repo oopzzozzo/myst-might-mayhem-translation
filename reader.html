@@ -88,7 +88,6 @@
             display: block;
         }
         
-        /* Custom scrollbar for horizontal scrolling in vertical mode */
         #reader-container::-webkit-scrollbar { height: 8px; }
         #reader-container::-webkit-scrollbar-track { background: transparent; }
         #reader-container::-webkit-scrollbar-thumb {
@@ -97,28 +96,28 @@
         }
         #reader-container::-webkit-scrollbar-thumb:hover { background: #b1aca0; }
 
-        /* Animation for page change */
         .fade-in { animation: fadeIn 0.3s ease-in; }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateX(20px); }
             to { opacity: 1; transform: translateX(0); }
         }
+        #directoryInput { display: none; }
     </style>
 </head>
 <body>
     <div id="header">
         <div class="nav-group">
+            <input type="file" id="directoryInput" webkitdirectory directory multiple>
             <button class="btn" id="pickFolder">選擇資料夾</button>
             <button class="btn" id="prevBtn" title="上一章">
                 <span>◀</span> <span id="prevLabel" class="chapter-label"></span>
             </button>
         </div>
-        <div id="file-info">請選擇小說資料夾</div>
+        <div id="file-info">請點擊選擇資料夾</div>
         <div class="nav-group">
             <button class="btn" id="nextBtn" title="下一章">
                 <span id="nextLabel" class="chapter-label"></span> <span>▶</span>
             </button>
-            <button class="btn" id="refreshBtn" title="重新掃描新章節">↻</button>
         </div>
     </div>
     <div id="reader-container">
@@ -126,9 +125,8 @@
     </div>
 
     <script>
-        let fileHandles = [];
+        let chapters = [];
         let currentIndex = -1;
-        let dirHandle = null;
 
         const contentDiv = document.getElementById('content');
         const fileInfo = document.getElementById('file-info');
@@ -137,125 +135,97 @@
         const prevLabel = document.getElementById('prevLabel');
         const nextLabel = document.getElementById('nextLabel');
         const pickBtn = document.getElementById('pickFolder');
-        const refreshBtn = document.getElementById('refreshBtn');
+        const directoryInput = document.getElementById('directoryInput');
         const container = document.getElementById('reader-container');
 
-        // Natural sort for strings with numbers
         function naturalSort(a, b) {
             return a.name.localeCompare(b.name, undefined, {numeric: true, sensitivity: 'base'});
         }
 
-        async function scanDirectory() {
-            if (!dirHandle) return;
-            const files = [];
-            for await (const entry of dirHandle.values()) {
-                if (entry.kind === 'file' && entry.name.endsWith('.txt')) {
-                    files.push(entry);
-                }
-            }
-            fileHandles = files.sort(naturalSort);
-            return fileHandles;
-        }
-
-        pickBtn.addEventListener('click', async () => {
-            try {
-                dirHandle = await window.showDirectoryPicker();
-                await refresh();
-                if (fileHandles.length > 0) loadChapter(0);
-            } catch (err) {
-                console.error("Folder picker cancelled or failed:", err);
-            }
+        pickBtn.addEventListener('click', () => {
+            directoryInput.click();
         });
 
-        refreshBtn.addEventListener('click', async () => {
-            if (!dirHandle) return;
-            const currentName = fileHandles[currentIndex]?.name;
-            await refresh();
-            // Try to stay on the same file if its index moved
-            if (currentName) {
-                currentIndex = fileHandles.findIndex(f => f.name === currentName);
+        directoryInput.addEventListener('change', async (e) => {
+            const files = Array.from(e.target.files)
+                .filter(file => file.name.endsWith('.txt'))
+                .sort(naturalSort);
+            
+            if (files.length === 0) {
+                alert("找不到 .txt 檔案");
+                return;
             }
-        });
 
-        async function refresh() {
-            await scanDirectory();
-            updateNavUI();
-            console.log(`Scanned ${fileHandles.length} chapters.`);
-        }
+            chapters = files;
+            console.log(`Loaded ${chapters.length} chapters.`);
+            loadChapter(0);
+        });
 
         async function loadChapter(index) {
-            if (index < 0 || index >= fileHandles.length) return;
+            if (index < 0 || index >= chapters.length) return;
             
             currentIndex = index;
-            const fileHandle = fileHandles[currentIndex];
-            const file = await fileHandle.getFile();
+            const file = chapters[currentIndex];
             let text = await file.text();
             
-            // 1. Layout is already handled by writing-mode: vertical-rl
+            // Masking common horizontal characters for vertical display
+            // Modern vertical-rl usually handles 「」 and （） well, 
+            // but we provide manual overrides if needed.
+            const masks = [
+                [/—/g, '｜'],
+                [/～/g, '｜'],
+                [/…/g, '︙'],
+                [/《/g, '﹃'],
+                [/》/g, '﹄'],
+                [/〈/g, '︿'],
+                [/〉/g, '﹀'],
+                [/（/g, '︵'],
+                [/）/g, '︶']
+            ];
             
-            // 2. Mask common horizontal characters with vertical ones
-            // Note: Modern fonts handle 「」 and （） automatically. 
-            // We'll focus on symbols that sometimes don't rotate well.
-            const maskMap = {
-                '（': '（', // Usually handled by font
-                '）': '）',
-                '—': '｜',  // Em dash
-                '～': '｜',
-                '…': '︙',  // Vertical ellipsis
-                '《': '﹃',
-                '》': '﹄',
-                '〈': '︿',
-                '〉': '﹀'
-            };
-            
-            // Note: We don't replace 「」 because vertical-rl handles them perfectly in CJK fonts.
-            // If the user's font is broken, we could do: text = text.replace(/「/g, '﹁').replace(/」/g, '﹂');
+            masks.forEach(([reg, rep]) => {
+                text = text.replace(reg, rep);
+            });
 
             contentDiv.innerText = text;
-            fileInfo.innerText = fileHandle.name.replace('.txt', '');
+            fileInfo.innerText = file.name.replace('.txt', '');
             
             container.classList.remove('fade-in');
-            void container.offsetWidth; // Trigger reflow
+            void container.offsetWidth; 
             container.classList.add('fade-in');
             
             updateNavUI();
             
-            // Scroll to the "beginning" (the far right in vertical-rl)
             container.scrollLeft = container.scrollWidth;
-            
-            // Save last read to localStorage
-            localStorage.setItem('last_chapter', fileHandle.name);
         }
 
         function updateNavUI() {
             if (currentIndex > 0) {
                 prevBtn.disabled = false;
-                prevLabel.innerText = fileHandles[currentIndex-1].name.replace('.txt', '');
+                prevLabel.innerText = chapters[currentIndex-1].name.replace('.txt', '');
             } else {
                 prevBtn.disabled = true;
-                prevLabel.innerText = "第一章";
+                prevLabel.innerText = "";
             }
 
-            if (currentIndex < fileHandles.length - 1) {
+            if (currentIndex < chapters.length - 1) {
                 nextBtn.disabled = false;
-                nextLabel.innerText = fileHandles[currentIndex+1].name.replace('.txt', '');
+                nextLabel.innerText = chapters[currentIndex+1].name.replace('.txt', '');
             } else {
                 nextBtn.disabled = true;
-                nextLabel.innerText = "最後一章";
+                nextLabel.innerText = "";
             }
         }
 
         prevBtn.addEventListener('click', () => loadChapter(currentIndex - 1));
         nextBtn.addEventListener('click', () => loadChapter(currentIndex + 1));
 
-        // Keyboard navigation
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft') loadChapter(currentIndex + 1); // In vertical-rl, next is to the left
+            if (e.key === 'ArrowLeft') loadChapter(currentIndex + 1); 
             if (e.key === 'ArrowRight') loadChapter(currentIndex - 1);
-            if (e.key === 'r' || e.key === 'R') refreshBtn.click();
         });
 
-        // Mouse drag scrolling
+        // Drag to scroll
         let isDown = false;
         let startX;
         let scrollLeft;
@@ -274,7 +244,6 @@
             const walk = (x - startX) * 2;
             container.scrollLeft = scrollLeft - walk;
         });
-
     </script>
 </body>
 </html>
