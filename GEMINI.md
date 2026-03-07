@@ -46,3 +46,53 @@ Save the extracted text to the `Myst,Might,Mayhem/` directory using the `NNN_Cha
 ## Troubleshooting
 - **Session Timeout:** If extraction fails, return to the home page or catalog to refresh the session.
 - **Lazy Loading:** If the text is incomplete, use `browser_click` on the navigation footer to trigger a scroll event before extraction.
+
+---
+
+## Translation Guide for New Chapters
+
+### 1. File Organization
+- **Source:** New English chapters should be saved in the `Myst,Might,Mayhem/` directory.
+- **Target:** Translated traditional Chinese chapters belong in the `怪力亂神/` directory.
+- **Naming Convention:** `第NNN話. [Title].txt` (e.g., `第001話. 機會 (1).txt`).
+
+### 2. Automated Translation
+Use the provided `watch_and_translate.py` script to automate the translation and pushing to GitHub.
+```bash
+nohup python -u watch_and_translate.py > translation.log 2>&1 &
+```
+*Note: The script currently uses `claude -p` for high-quality translations. Ensure Claude Code is authorized.*
+
+### 3. Key Terminology & Word Choices
+To maintain consistency with the official Webnovel/Webtoon translation, always use these specific terms:
+
+| English Term | Chinese Translation (Traditional) | Context |
+| :--- | :--- | :--- |
+| **Mok Gyeong-un** | **木景雲** | Protagonist |
+| **Yeon Mok Sword Manor** | **然木劍庄** | Family Manor |
+| **Void** | **虛空** | Core Power System |
+| **Breath of Death** | **死氣** | Specific technique |
+| **Guyeo** | **犰狳** | Supernatural entity |
+| **Heaven & Earth Society**| **天地會** | Main organization |
+| **Corpse Blood Valley** | **屍血谷** | Organization |
+| **Primal Killing Pavilion**| **原殺閣** | Organization |
+| **Prince Gyeongjin** | **慶進大君** | Royal family |
+| **Void Sun** | **虛空之陽** | Ultimate form/state |
+| **Opportunity** | **機會** | Arc title |
+| **Go Chan** | **高賛** | Loyal guard |
+| **Ha Chae-rin** | **夏彩琳** | Female lead/Assassin |
+| **Wi So-yeon** | **魏昭妍** | Third disciple |
+| **Sang Ung-baek** | **尚雄博** | Outer manor master |
+
+### 4. Translation Style Guidelines
+- **Dramatic & Concise:** Follow the "Wuxia" (武俠) or "Xianxia" (仙俠) style common in professional translations.
+- **Internal Monologues:** Use single quotes (『...』) for thoughts.
+- **Dialogue:** Use double corner brackets (「...」) for spoken words.
+- **Action Description:** Use short, punchy sentences to maintain momentum.
+- **Chapter Header:** The first line of the file must be formatted as `第NNN話. [Title]`.
+
+### 5. Manual Polish
+After the script finishes, perform a quick spot check for:
+- Proper conversion of names.
+- Logical flow of martial arts descriptions.
+- Correct file naming formatting.
