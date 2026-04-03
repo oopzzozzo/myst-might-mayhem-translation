@@ -29,7 +29,22 @@
       "Bash(python3:*)",
       "WebFetch(domain:anicube.net)",
       "Bash(echo:*)",
-      "Bash(git:*)"
+      "Bash(git:*)",
+      "Bash(ls /home/pi/projects/novels/Myst,Might,Mayhem/*.txt)",
+      "Bash(ls /home/pi/projects/novels/怪力亂神/*.txt)",
+      "Bash(ls /home/pi/projects/novels/*.py)",
+      "Bash(ls /home/pi/projects/novels/*.sh)",
+      "Bash(ls /home/pi/projects/novels/Myst,Might,Mayhem/*.py)",
+      "Bash(head -3 /home/pi/projects/novels/怪力亂神/第171話*.txt)",
+      "Bash(head -3 /home/pi/projects/novels/怪力亂神/第172話*.txt)",
+      "Bash(claude -p \"Say hi\" --model claude-haiku-4-5-20251001)",
+      "Bash(claude -p \"Hi\" --model claude-haiku-4-5-20251001)",
+      "Bash(ls -la /home/pi/projects/novels/怪力亂神/第18[0-9]話*.txt)",
+      "Bash(ls -la /home/pi/projects/novels/怪力亂神/第18[7-9]話*.txt)",
+      "Bash(wc:*)",
+      "Bash(grep -n \"api/books\\\\|api/chapters\\\\|api/chapter\\\\|HTTPServer\\\\|BaseHTTP\\\\|flask\\\\|FastAPI\" /home/pi/projects/novels/*.py)",
+      "Bash(ls 第12[4-7]話*.txt 第13[7-9]話*.txt 第14[0-3]話*.txt 第15[0-7]話*.txt 第16[9]話*.txt 第17[0-9]話*.txt 第18[01]話*.txt)",
+      "Bash(grep -rl '白殺霞\\\\|白殺河\\\\|影族\\\\|張凌岳\\\\|張凌嶽\\\\|趙泰淸\\\\|趙泰青\\\\|毀滅派' *.txt chapters.json)"
     ]
   }
 }

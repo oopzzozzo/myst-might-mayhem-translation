@@ -91,7 +91,7 @@ def get_output_filename(english_filename):
     basename = os.path.basename(english_filename)
     num = int(basename.split('_')[0])  # e.g. 001 → 1
     zh_num = num - 1  # Chinese is 0-indexed: 001→第000話
-    zh_dir = '/home/pi/projects/novel/怪力亂神'
+    zh_dir = '/home/pi/projects/novels/怪力亂神'
     pattern = os.path.join(zh_dir, f'第{zh_num:03d}話*.txt')
     matches = glob.glob(pattern)
     if matches:
@@ -118,7 +118,7 @@ def translate_chapter(english_path):
          '--model', 'claude-haiku-4-5-20251001',
          prompt],
         stdin=subprocess.DEVNULL,
-        capture_output=True, text=True, env=env, timeout=300
+        capture_output=True, text=True, env=env, timeout=600
     )
 
     if result.returncode != 0:
@@ -151,7 +151,7 @@ def main():
     from concurrent.futures import ThreadPoolExecutor, as_completed
     write_system_prompt()
 
-    en_dir = '/home/pi/projects/novel/Myst,Might,Mayhem'
+    en_dir = '/home/pi/projects/novels/Myst,Might,Mayhem'
     english_files = sorted(glob.glob(os.path.join(en_dir, '*.txt')))
 
     start_from = int(sys.argv[1]) if len(sys.argv) > 1 else 15
